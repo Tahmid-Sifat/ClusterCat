@@ -24,3 +24,4 @@
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1144ms
  GET /dashboard 200 in 1397ms
  GET /.well-known/appspecific/com.chrome.devtools.json 404 in 53ms
+ ✓ Compiled in 1714ms (289 modules)

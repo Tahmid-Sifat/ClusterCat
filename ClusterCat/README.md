@@ -130,7 +130,9 @@ ClusterCat/
 - Node.js 18 or newer
 - Docker Desktop
 - MongoDB via Docker Compose
-- Optional for voice: LiveKit credentials, Piper voice model, Whisper model download on first run
+- LiveKit credentials for real-time voice rooms
+- Piper ONNX voice model for local text-to-speech
+- Whisper model download on first voice-worker run
 
 ## Environment Setup
 
@@ -164,6 +166,107 @@ PIPER_CONFIG_PATH=F:\path\to\voice.onnx.json
 
 `PIPER_CONFIG_PATH` can be omitted when the config JSON sits beside the ONNX model using Piper's expected filename.
 
+## Dependency Setup
+
+### Backend Python Environment
+
+Create and activate a virtual environment before installing the backend and voice dependencies:
+
+```powershell
+cd F:\ClusterCat\ClusterCat\api
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+The backend requirements install the multi-agent API plus the voice stack:
+
+- `fastapi`, `uvicorn`, `pydantic` for the API.
+- `motor`, `python-dotenv` for MongoDB and environment loading.
+- `livekit-agents`, `livekit-plugins-silero`, `livekit-plugins-deepgram`, `livekit-plugins-openai` for real-time voice worker support.
+- `faster-whisper` for local Whisper speech-to-text.
+- `piper-tts` for local Piper text-to-speech.
+- `openai`, `anthropic`, `httpx` for optional hosted model integrations.
+
+### Whisper Setup
+
+ClusterCat uses `faster-whisper` through `api/voice/local_whisper.py`.
+
+Set the model size in `api/.env`:
+
+```env
+VOICE_STT_PROVIDER=whisper
+WHISPER_MODEL_SIZE=base
+```
+
+The first time the voice worker starts, `faster-whisper` downloads the selected model automatically. Use `tiny` or `base` for lightweight local demos, and larger models only if the machine has enough CPU/GPU capacity.
+
+### Piper Setup
+
+ClusterCat uses Piper through `api/voice/local_piper.py`.
+
+Set the Piper model paths in `api/.env`:
+
+```env
+VOICE_TTS_PROVIDER=piper
+PIPER_MODEL_PATH=F:\ClusterCat\ClusterCat\models\piper\en_GB-southern_english_female-low.onnx
+PIPER_CONFIG_PATH=F:\ClusterCat\ClusterCat\models\piper\en_GB-southern_english_female-low.onnx.json
+```
+
+If you use a different Piper voice, place both files somewhere stable and update the paths:
+
+- `your-voice.onnx`
+- `your-voice.onnx.json`
+
+Piper does not download voices automatically. The `.onnx` model and matching `.onnx.json` config must exist before starting the voice worker.
+
+### LiveKit Setup
+
+Create a LiveKit Cloud project or run your own LiveKit server, then add credentials to `api/.env`:
+
+```env
+LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_api_secret
+```
+
+The backend route `POST /api/voice/session` creates a LiveKit room and returns a browser token. The separate voice worker joins the room, listens to caller audio, sends transcribed text into the orchestrator, and publishes Piper speech back to the caller.
+
+### Frontend Dependencies
+
+Install the Next.js dashboard dependencies:
+
+```powershell
+cd F:\ClusterCat\ClusterCat\apps\web
+npm install
+```
+
+The frontend uses:
+
+- `next`, `react`, `react-dom` for the web app.
+- `livekit-client` for browser voice-room connection.
+- `lucide-react` for dashboard icons.
+- `tailwindcss`, `typescript`, and React types for UI development.
+
+### MongoDB Setup
+
+Start MongoDB with Docker Compose:
+
+```powershell
+cd F:\ClusterCat\ClusterCat
+docker compose up -d mongo
+```
+
+Use these backend environment values for local MongoDB:
+
+```env
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB_NAME=clustercat
+```
+
+On API startup, ClusterCat creates indexes and seeds the demo owner, pet, service, staff, and policy data when needed.
+
 ## Install And Run
 
 ### 1. Start MongoDB
@@ -179,6 +282,7 @@ docker compose up -d mongo
 cd F:\ClusterCat\ClusterCat\api
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
@@ -242,54 +346,6 @@ Voice mode uses:
 - Silero for voice activity detection
 - Piper for speaker output
 - the same `OrchestratorBridge` and backend agent workflow used by chat
-
-## Terminal Demo For Judges
-
-### Health check
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/api/health
-```
-
-### Prepare booking request
-
-```powershell
-$booking = @{ phone = "+44 7700 900001"; channel = "chat"; message = "Hi, I need to book Bella for a wellness exam. She's been scratching a lot and seems a bit off. She was also at another vet last week and they gave her something but I can't remember what it was. Oh - and I think she might be pregnant." } | ConvertTo-Json
-```
-
-### Send booking request
-
-```powershell
-$r = Invoke-RestMethod http://127.0.0.1:8000/api/chat -Method Post -ContentType "application/json" -Body $booking
-```
-
-### Show the agent chain
-
-```powershell
-$r.actions | Format-Table agent,action,detail -Wrap
-```
-
-This demonstrates Reception, Pet Memory, Policy Retrieval, Triage, Scheduler, and Escalation agents.
-
-### Prepare resume request
-
-```powershell
-$resume = @{ phone = "+44 7700 900001"; channel = "chat"; message = "I found the prescription - it was Apoquel 5mg" } | ConvertTo-Json
-```
-
-### Send resume request
-
-```powershell
-$r2 = Invoke-RestMethod http://127.0.0.1:8000/api/chat -Method Post -ContentType "application/json" -Body $resume
-```
-
-### Show resumed workflow actions
-
-```powershell
-$r2.actions | Format-Table agent,action,detail -Wrap
-```
-
-This demonstrates stateful workflow resume, medication memory, staff handoff, and follow-up notification.
 
 ## Safety Model
 
