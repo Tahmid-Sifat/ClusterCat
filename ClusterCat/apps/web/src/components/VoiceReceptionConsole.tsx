@@ -42,6 +42,7 @@ export function VoiceReceptionConsole({ response, isLoading }: VoiceReceptionCon
 
       const room = new Room();
       await room.connect(session.url, session.token);
+      await room.startAudio();
 
       roomRef.current = room;
 
@@ -186,7 +187,7 @@ export function VoiceReceptionConsole({ response, isLoading }: VoiceReceptionCon
           <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{connectionError}</div>
         ) : null}
 
-        <div ref={audioContainerRef} className="hidden" />
+        <div ref={audioContainerRef} className="sr-only" />
         {voiceSession ? (
           <div className="rounded-lg border border-[#d8cec2] bg-[#fffdf9] p-3 text-sm text-[#7a6b5e]">
             <p>Room: <span className="font-mono text-[#332a22]">{voiceSession.room}</span></p>
