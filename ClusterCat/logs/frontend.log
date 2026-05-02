@@ -13,3 +13,14 @@
  GET /admin 200 in 3393ms
  GET /dashboard 200 in 3413ms
  GET /dashboard 200 in 32ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.2s (546 modules)
+ GET / 200 in 6379ms
+ GET / 200 in 116ms
+ GET / 200 in 114ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 565ms (549 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 900ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1144ms
+ GET /dashboard 200 in 1397ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 53ms
