@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
+from uuid import uuid4
 
 from db.connection import RETURN_DOCUMENT_AFTER
-from db import collections
+from db import collections_db as collections
 
 
 async def lock_slot(staff_id: str, slot: str, workflow_id: str):
@@ -17,6 +18,7 @@ async def lock_slot(staff_id: str, slot: str, workflow_id: str):
 
 async def create_appointment(owner_id: str, pet_id: str, service_id: str, staff_id: str, slot: str, notes: str, status: str = "pending_vet_approval"):
     doc = {
+        "_id": str(uuid4()),
         "owner_id": owner_id,
         "pet_id": pet_id,
         "service_id": service_id,
@@ -26,8 +28,7 @@ async def create_appointment(owner_id: str, pet_id: str, service_id: str, staff_
         "notes": notes,
         "created_at": datetime.utcnow(),
     }
-    result = await collections.appointments.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
+    await collections.appointments.insert_one(doc)
     return doc
 
 

@@ -5,12 +5,26 @@ import os
 
 async def embed_text(text: str) -> list[float]:
     """Swappable embedding provider; returns [] in local demo mode."""
-    if not os.getenv("OPENAI_API_KEY"):
+    if not os.getenv("VOYAGE_API_KEY"):
         return []
     try:
-        from openai import AsyncOpenAI
+        import httpx
     except Exception:
         return []
-    client = AsyncOpenAI()
-    response = await client.embeddings.create(model="text-embedding-ada-002", input=text)
-    return response.data[0].embedding
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://api.voyageai.com/v1/embeddings",
+            headers={
+                "Authorization": f"Bearer {os.getenv('VOYAGE_API_KEY')}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "input": text,
+                "model": "voyage-3-lite",
+            },
+        )
+        if response.status_code == 200:
+            data = response.json()
+            return data["data"][0]["embedding"]
+        return []

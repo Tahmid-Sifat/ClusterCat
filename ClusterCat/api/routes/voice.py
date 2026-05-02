@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/api/voice", tags=["voice"])
+router = APIRouter(prefix="/voice", tags=["voice"])
 
 
 @router.post("/session")

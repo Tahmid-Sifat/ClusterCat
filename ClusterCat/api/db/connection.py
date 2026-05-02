@@ -6,6 +6,10 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class InsertOneResult:
     def __init__(self, inserted_id: str):
@@ -63,6 +67,9 @@ class MemoryCollection:
         query = query or {}
         return AsyncCursor([deepcopy(doc) for doc in self.docs if _matches(doc, query)])
 
+    async def count_documents(self, query: dict[str, Any]):
+        return len([doc for doc in self.docs if _matches(doc, query)])
+
     def aggregate(self, pipeline: list[dict[str, Any]]):
         limit = 100
         for stage in pipeline:
@@ -107,17 +114,32 @@ class MemoryDatabase:
 
 def _matches(doc: dict[str, Any], query: dict[str, Any]) -> bool:
     for key, expected in query.items():
-        actual = doc.get(key)
+        actual = _get_nested(doc, key)
         if isinstance(expected, dict):
             if "$in" in expected and actual not in expected["$in"]:
                 return False
             if "$gt" in expected and not (actual and actual > expected["$gt"]):
+                return False
+            if "$gte" in expected and not (actual and actual >= expected["$gte"]):
+                return False
+            if "$lt" in expected and not (actual and actual < expected["$lt"]):
+                return False
+            if "$lte" in expected and not (actual and actual <= expected["$lte"]):
                 return False
             if "$ne" in expected and actual == expected["$ne"]:
                 return False
         elif actual != expected:
             return False
     return True
+
+
+def _get_nested(doc: dict[str, Any], key: str):
+    current: Any = doc
+    for part in key.split("."):
+        if not isinstance(current, dict):
+            return None
+        current = current.get(part)
+    return current
 
 
 def _apply_update(doc: dict[str, Any], update: dict[str, Any]):

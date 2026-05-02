@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from db import collections
+from db import collections_db as collections
 from services.embeddings import embed_text
 from tools.retrieval_tools import retrieve_policy
 

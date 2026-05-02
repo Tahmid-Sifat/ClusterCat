@@ -1,4 +1,4 @@
-from db import collections
+from db import collections_db as collections
 
 
 async def create_indexes():

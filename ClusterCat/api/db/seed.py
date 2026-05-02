@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta
 
-from db import collections
+from db import collections_db as collections
 from db.indexes import create_indexes
+from services.embeddings import embed_text
 
 
 POLICIES = [
@@ -94,9 +95,10 @@ async def seed():
     })
 
     for content, tags in POLICIES:
+        embedding = await embed_text(content)
         await collections.knowledge_chunks.insert_one({
             "content": content,
-            "embedding": [],
+            "embedding": embedding,
             "tags": tags,
             "source": "seed_policy",
             "created_at": now,

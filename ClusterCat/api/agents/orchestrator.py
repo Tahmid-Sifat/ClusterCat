@@ -20,6 +20,7 @@ async def handle_message(phone: str, message: str, channel: str = "chat") -> Cha
     emergency = detect_emergency(message)
     owner, pet = await identify_customer(phone, message)
     workflow = await resume_pending_workflow(str(owner["_id"]))
+    intent = detect_intent(message)
 
     if emergency["is_emergency"]:
         if not workflow:
@@ -41,10 +42,9 @@ async def handle_message(phone: str, message: str, channel: str = "chat") -> Cha
             actions=_actions(workflow),
         )
 
-    if workflow and _looks_like_medication_update(message):
+    if workflow and intent != "booking" and _looks_like_medication_update(message):
         return await _resume_with_medication(owner, pet, workflow, message, phone)
 
-    intent = detect_intent(message)
     if intent == "booking":
         return await _start_booking(owner, pet, message, phone)
 

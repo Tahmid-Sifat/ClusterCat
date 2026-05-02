@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import collections
+from db import collections_db as collections
 from db.indexes import create_indexes
 from db.seed import seed
 from routes import appointments, chat, dashboard, flags, knowledge, pets, sms, triage, voice, workflows
@@ -16,16 +16,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chat.router)
-app.include_router(dashboard.router)
-app.include_router(workflows.router)
-app.include_router(pets.router)
-app.include_router(appointments.router)
-app.include_router(knowledge.router)
-app.include_router(triage.router)
-app.include_router(flags.router)
-app.include_router(sms.router)
-app.include_router(voice.router)
+API_PREFIX = "/api"
+
+app.include_router(chat.router, prefix=API_PREFIX)
+app.include_router(dashboard.router, prefix=API_PREFIX)
+app.include_router(workflows.router, prefix=API_PREFIX)
+app.include_router(pets.router, prefix=API_PREFIX)
+app.include_router(appointments.router, prefix=API_PREFIX)
+app.include_router(knowledge.router, prefix=API_PREFIX)
+app.include_router(triage.router, prefix=API_PREFIX)
+app.include_router(flags.router, prefix=API_PREFIX)
+app.include_router(sms.router, prefix=API_PREFIX)
+app.include_router(voice.router, prefix=API_PREFIX)
 
 
 @app.on_event("startup")
@@ -38,3 +40,8 @@ async def startup():
 @app.get("/health")
 async def health():
     return {"ok": True, "service": "clustercat-api"}
+
+
+@app.get(f"{API_PREFIX}/health")
+async def api_health():
+    return await health()

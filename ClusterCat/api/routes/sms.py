@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from routes.util import clean
 from tools.notification_tools import send_sms_or_mock
 
-router = APIRouter(prefix="/api/sms", tags=["sms"])
+router = APIRouter(prefix="/sms", tags=["sms"])
 
 
 class MockSmsRequest(BaseModel):
