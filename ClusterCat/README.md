@@ -14,6 +14,13 @@ The first demo target is a text-chat workflow that:
 
 ## Backend
 
+Start local MongoDB with Docker:
+
+```bash
+cd ClusterCat
+docker compose up -d mongo
+```
+
 ```bash
 cd ClusterCat/api
 python -m venv .venv
