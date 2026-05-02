@@ -28,7 +28,7 @@ export default function Home() {
 
         <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[58fr_42fr]">
           <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
-            <VoiceReceptionConsole response={chat.currentResponse} isLoading={chat.isLoading} onStartDemo={chat.sendMessage} />
+            <VoiceReceptionConsole response={chat.currentResponse} isLoading={chat.isLoading} />
             <ChatInterface messages={chat.messages} isLoading={chat.isLoading} error={chat.error} onSendMessage={chat.sendMessage} />
           </div>
 

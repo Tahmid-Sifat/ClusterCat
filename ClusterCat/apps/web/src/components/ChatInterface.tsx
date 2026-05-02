@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Send, Stethoscope } from "lucide-react";
+import { MessageSquare, Mic, MicOff, Send, Stethoscope } from "lucide-react";
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import type { Message } from "@/lib/types";
 
@@ -16,14 +16,72 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ messages, isLoading, error, onSendMessage }: ChatInterfaceProps) {
   const [value, setValue] = useState(demoMessage);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isLoading]);
 
-  function submit() {
-    const text = value.trim();
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-GB";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setSpeechSupported(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        const transcript = result[0]?.transcript ?? "";
+        if (result.isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      const transcriptText = finalTranscript.trim() || interimTranscript.trim();
+      if (transcriptText) {
+        setValue(transcriptText);
+      }
+
+      if (finalTranscript.trim()) {
+        submit(finalTranscript.trim());
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      recognition.stop();
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    setSpeechSupported(true);
+  }, []);
+
+  function submit(override?: string) {
+    const text = override ? override.trim() : value.trim();
     if (!text || isLoading) return;
     onSendMessage(text);
     setValue("");
@@ -38,6 +96,24 @@ export function ChatInterface({ messages, isLoading, error, onSendMessage }: Cha
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       submit();
+    }
+  }
+
+  function toggleListening() {
+    if (!recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      return;
+    }
+
+    try {
+      recognitionRef.current.start();
+      setIsListening(true);
+      setSpeechSupported(true);
+      setValue("");
+    } catch {
+      setIsListening(false);
     }
   }
 
@@ -71,6 +147,15 @@ export function ChatInterface({ messages, isLoading, error, onSendMessage }: Cha
       <form onSubmit={onSubmit} className="border-t border-[#d8cec2] bg-[#fffdf9] p-3">
         {error ? <p className="mb-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
         <div className="flex gap-2">
+          <button
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#cbb7a4] bg-white px-4 text-sm font-semibold text-[#332a22] shadow-sm transition hover:border-[#7c5236] hover:bg-[#f3efe7] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!speechSupported}
+            onClick={toggleListening}
+            type="button"
+          >
+            {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+            {isListening ? "Listening..." : speechSupported ? "Talk" : "Voice not supported"}
+          </button>
           <input
             className="min-w-0 flex-1 rounded-lg border border-[#cbb7a4] bg-white px-3 py-2 text-sm text-[#332a22] shadow-sm outline-none transition hover:border-[#9a7a61] focus:border-[#7c5236] focus:ring-2 focus:ring-[#d8c5b6]"
             disabled={isLoading}

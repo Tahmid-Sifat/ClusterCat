@@ -26,6 +26,18 @@ export async function sendChat(payload: ChatRequest): Promise<ChatResponse> {
   return normalizeChatResponse(await response.json());
 }
 
+export async function createVoiceSession(): Promise<VoiceSessionResponse> {
+  const response = await fetch(`${API_BASE}/api/voice/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Voice session failed: ${detail}`);
+  }
+  return await response.json();
+}
+
 export async function getDashboard(): Promise<DashboardData> {
   const response = await fetch(`${API_BASE}/api/dashboard`, { cache: "no-store" });
   if (!response.ok) throw new Error("Dashboard request failed");

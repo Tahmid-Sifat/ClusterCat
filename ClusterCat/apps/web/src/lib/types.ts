@@ -70,6 +70,14 @@ export interface ChatRequest {
   session_state: WorkflowState | Record<string, never>;
 }
 
+export interface VoiceSessionResponse {
+  url: string;
+  token: string;
+  room: string;
+  identity: string;
+  expires_at: string;
+}
+
 export interface PendingWorkflow {
   _id: string;
   workflow_type: string;
