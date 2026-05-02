@@ -1,0 +1,17 @@
+from db.connection import db
+
+owners = db["owners"]
+pets = db["pets"]
+services = db["services"]
+staff = db["staff"]
+appointments = db["appointments"]
+conversations = db["conversations"]
+agent_workflows = db["agent_workflows"]
+knowledge_chunks = db["knowledge_chunks"]
+agent_memories = db["agent_memories"]
+retrieval_feedback = db["retrieval_feedback"]
+triage_events = db["triage_events"]
+medication_flags = db["medication_flags"]
+slot_locks = db["slot_locks"]
+staff_handoffs = db["staff_handoffs"]
+mock_sms = db["mock_sms"]

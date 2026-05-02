@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  min-height: 100%;
+  background: #f7f3eb;
+  color: #1c2430;
+}
+
+button,
+input {
+  font: inherit;
+}
