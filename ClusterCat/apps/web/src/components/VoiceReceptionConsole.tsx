@@ -22,18 +22,129 @@ export function VoiceReceptionConsole({ response, isLoading }: VoiceReceptionCon
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [voiceSession, setVoiceSession] = useState<VoiceSessionResponse | null>(null);
   const [remoteSpeakers, setRemoteSpeakers] = useState(0);
+  const [remoteParticipants, setRemoteParticipants] = useState(0);
   const roomRef = useRef<Room | null>(null);
   const audioContainerRef = useRef<HTMLDivElement | null>(null);
+  const attachedAudioTracksRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     return () => {
       roomRef.current?.disconnect();
       roomRef.current = null;
+      clearRemoteAudio(false);
     };
   }, []);
 
+  function trackKey(track: any) {
+    return track.sid ?? track.mediaStreamTrack?.id ?? track.id;
+  }
+
+  function clearRemoteAudio(updateState = true) {
+    audioContainerRef.current?.replaceChildren();
+    attachedAudioTracksRef.current.clear();
+    if (updateState) {
+      setRemoteSpeakers(0);
+    }
+  }
+
+  async function attachRemoteAudioTrack(track: any) {
+    if (track.kind !== "audio") return;
+    const key = trackKey(track);
+    if (key && attachedAudioTracksRef.current.has(key)) return;
+
+    const mediaElement = track.attach() as HTMLAudioElement;
+    mediaElement.autoplay = true;
+    mediaElement.controls = false;
+    mediaElement.muted = false;
+    mediaElement.setAttribute("playsinline", "true");
+    if (audioContainerRef.current) {
+      audioContainerRef.current.appendChild(mediaElement);
+    }
+    if (key) {
+      attachedAudioTracksRef.current.add(key);
+      setRemoteSpeakers(attachedAudioTracksRef.current.size);
+    } else {
+      setRemoteSpeakers((count) => count + 1);
+    }
+
+    try {
+      await mediaElement.play();
+    } catch (err) {
+      console.warn("Browser blocked remote voice playback", err);
+      setConnectionError("Connected, but the browser blocked speaker playback. Click Start voice call again and allow microphone/audio.");
+    }
+  }
+
+  function detachRemoteAudioTrack(track: any) {
+    if (track.kind !== "audio") return;
+    track.detach().forEach((el: HTMLElement) => el.remove());
+    const key = trackKey(track);
+    if (key) {
+      attachedAudioTracksRef.current.delete(key);
+      setRemoteSpeakers(attachedAudioTracksRef.current.size);
+    } else {
+      setRemoteSpeakers((count) => Math.max(0, count - 1));
+    }
+  }
+
+  function setupParticipantListeners(participant: any) {
+    participant.on("trackSubscribed", (track: any) => {
+      void attachRemoteAudioTrack(track);
+    });
+
+    participant.on("trackUnsubscribed", (track: any) => {
+      detachRemoteAudioTrack(track);
+    });
+
+    participant.audioTrackPublications.forEach((publication: any) => {
+      publication.on("subscribed", (track: any) => {
+        void attachRemoteAudioTrack(track);
+      });
+      publication.on("unsubscribed", (track: any) => {
+        detachRemoteAudioTrack(track);
+      });
+      if (!publication.isSubscribed) {
+        try {
+          publication.setSubscribed(true);
+        } catch (err) {
+          console.warn("Failed to subscribe to publication", err);
+        }
+      }
+      const track = publication.track;
+      if (track) {
+        void attachRemoteAudioTrack(track);
+      }
+    });
+  }
+
+  function registerRoomListeners(room: Room) {
+    room.on("disconnected", () => {
+      clearRemoteAudio();
+      setSessionState("ended");
+    });
+
+    room.on("participantConnected", (participant: any) => {
+      setRemoteParticipants((count) => count + 1);
+      setSessionState("connected");
+      setupParticipantListeners(participant);
+    });
+
+    room.on("participantDisconnected", () => {
+      setRemoteParticipants((count) => Math.max(0, count - 1));
+    });
+
+    room.on("trackSubscribed", (track: any) => {
+      void attachRemoteAudioTrack(track);
+    });
+
+    room.on("trackUnsubscribed", (track: any) => {
+      detachRemoteAudioTrack(track);
+    });
+  }
+
   async function startVoiceCall() {
     setConnectionError(null);
+    clearRemoteAudio();
     setSessionState("connecting");
 
     try {
@@ -41,36 +152,15 @@ export function VoiceReceptionConsole({ response, isLoading }: VoiceReceptionCon
       setVoiceSession(session);
 
       const room = new Room();
-      await room.connect(session.url, session.token);
+      registerRoomListeners(room);
+      await room.connect(session.url, session.token, { autoSubscribe: true });
       await room.startAudio();
 
       roomRef.current = room;
+      setRemoteParticipants(room.remoteParticipants.size);
 
-      room.on("disconnected", () => {
-        setSessionState("ended");
-      });
-
-      room.on("participantConnected", () => {
-        setSessionState("connected");
-      });
-
-      room.on("trackSubscribed", (track) => {
-        if (track.kind === "audio") {
-          const mediaElement = track.attach();
-          mediaElement.autoplay = true;
-          mediaElement.controls = false;
-          if (audioContainerRef.current) {
-            audioContainerRef.current.appendChild(mediaElement);
-          }
-          setRemoteSpeakers((count) => count + 1);
-        }
-      });
-
-      room.on("trackUnsubscribed", (track) => {
-        if (track.kind === "audio") {
-          track.detach().forEach((el) => el.remove());
-          setRemoteSpeakers((count) => Math.max(0, count - 1));
-        }
+      room.remoteParticipants.forEach((participant: any) => {
+        setupParticipantListeners(participant);
       });
 
       const localTracks = await createLocalTracks({ audio: true, video: false });
@@ -91,6 +181,7 @@ export function VoiceReceptionConsole({ response, isLoading }: VoiceReceptionCon
   function stopVoiceCall() {
     roomRef.current?.disconnect();
     roomRef.current = null;
+    clearRemoteAudio();
     setSessionState("ended");
   }
 
@@ -193,6 +284,7 @@ export function VoiceReceptionConsole({ response, isLoading }: VoiceReceptionCon
             <p>Room: <span className="font-mono text-[#332a22]">{voiceSession.room}</span></p>
             <p>Identity: <span className="font-mono text-[#332a22]">{voiceSession.identity}</span></p>
             <p>Expires: <span className="font-mono text-[#332a22]">{new Date(voiceSession.expires_at).toLocaleString()}</span></p>
+            <p>Remote participants: {remoteParticipants}</p>
             <p>Remote speakers: {remoteSpeakers}</p>
           </div>
         ) : null}

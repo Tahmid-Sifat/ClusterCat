@@ -1,0 +1,10 @@
+DEBUG:asyncio:Using proactor: IocpProactor
+2026-05-02 18:03:45,457 - [36mDEBUG[0m asyncio - Using proactor: IocpProactor [90m[0m
+DEV:livekit.agents:Watching F:\ClusterCat\ClusterCat\api\voice
+2026-05-02 18:03:45,480 - [35mDEV [0m livekit.agents - Watching F:\ClusterCat\ClusterCat\api\voice [90m[0m
+DEBUG:asyncio:Using proactor: IocpProactor
+2026-05-02 18:03:47,082 - [36mDEBUG[0m asyncio - Using proactor: IocpProactor [90m[0m
+INFO:livekit.agents:starting worker
+2026-05-02 18:03:47,097 - [32mINFO[0m livekit.agents - starting worker [90m{"version": "0.12.21", "rtc-version": "1.1.7"}[0m
+INFO:livekit.agents:registered worker
+2026-05-02 18:03:47,224 - [32mINFO[0m livekit.agents - registered worker [90m{"id": "AW_GAZ5xZQJaaJB", "region": "UK", "protocol": 17, "node_id": "NC_OLONDON1B_TuytRcMWxCfn"}[0m

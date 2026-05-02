@@ -45,7 +45,7 @@ async def voice_session():
 
         expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
         token = (
-            AccessToken()
+            AccessToken(api_key, api_secret)
             .with_identity(identity)
             .with_name("ClusterCat Visitor")
             .with_grants(
