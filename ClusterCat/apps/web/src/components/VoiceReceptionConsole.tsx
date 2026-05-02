@@ -2,7 +2,7 @@
 
 import { Activity, Mic, PhoneCall, ShieldAlert, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { connect, createLocalTracks, Room } from "livekit-client";
+import { createLocalTracks, Room } from "livekit-client";
 import type { ReactNode } from "react";
 import type { ChatResponse, VoiceSessionResponse } from "@/lib/types";
 import { createVoiceSession } from "@/lib/api";
@@ -40,10 +40,8 @@ export function VoiceReceptionConsole({ response, isLoading }: VoiceReceptionCon
       const session = await createVoiceSession();
       setVoiceSession(session);
 
-      const room = await connect(session.url, session.token, {
-        audio: false,
-        video: false,
-      });
+      const room = new Room();
+      await room.connect(session.url, session.token);
 
       roomRef.current = room;
 
