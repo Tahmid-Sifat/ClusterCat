@@ -1,6 +1,7 @@
 from datetime import datetime
+from uuid import uuid4
 
-from db import collections
+from db import collections_db as collections
 
 
 async def triage_symptom(symptom_description: str, owner_id: str | None = None, pet_id: str | None = None, pregnancy_context: bool = False):
@@ -13,6 +14,7 @@ async def triage_symptom(symptom_description: str, owner_id: str | None = None, 
     else:
         urgency = "routine"
     doc = {
+        "_id": str(uuid4()),
         "owner_id": owner_id,
         "pet_id": pet_id,
         "symptom_description": symptom_description,
@@ -20,6 +22,5 @@ async def triage_symptom(symptom_description: str, owner_id: str | None = None, 
         "escalated": urgency in ["urgent", "emergency"],
         "created_at": datetime.utcnow(),
     }
-    result = await collections.triage_events.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
+    await collections.triage_events.insert_one(doc)
     return doc

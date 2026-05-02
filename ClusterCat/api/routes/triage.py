@@ -1,11 +1,11 @@
 from fastapi import APIRouter
 
-from db import collections
+from db import collections_db as collections
 from models.schemas import TriageRequest
 from routes.util import clean
 from tools.triage_tools import triage_symptom
 
-router = APIRouter(prefix="/api/triage", tags=["triage"])
+router = APIRouter(prefix="/triage", tags=["triage"])
 
 
 @router.post("")

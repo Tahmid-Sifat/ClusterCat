@@ -82,3 +82,12 @@ class TriageRequest(BaseModel):
     symptom_description: str
     owner_id: str | None = None
     pet_id: str | None = None
+
+
+class AppointmentCreate(BaseModel):
+    owner_id: str
+    pet_id: str
+    service_id: str
+    staff_id: str
+    slot: str
+    notes: str = ""

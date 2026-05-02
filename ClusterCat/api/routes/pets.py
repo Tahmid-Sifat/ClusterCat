@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 
-from db import collections
+from db import collections_db as collections
 from routes.util import clean
 
-router = APIRouter(prefix="/api/pets", tags=["pets"])
+router = APIRouter(prefix="/pets", tags=["pets"])
 
 
 @router.get("/{pet_id}")

@@ -1,6 +1,7 @@
 from datetime import datetime
+from uuid import uuid4
 
-from db import collections
+from db import collections_db as collections
 
 
 async def find_or_create_pet(owner_id: str, name: str | None = None):
@@ -12,6 +13,7 @@ async def find_or_create_pet(owner_id: str, name: str | None = None):
     if pet:
         return pet
     doc = {
+        "_id": str(uuid4()),
         "owner_id": owner_id,
         "name": name or "Unknown pet",
         "breed": None,
@@ -24,8 +26,7 @@ async def find_or_create_pet(owner_id: str, name: str | None = None):
         "visit_history": [],
         "created_at": datetime.utcnow(),
     }
-    result = await collections.pets.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
+    await collections.pets.insert_one(doc)
     return doc
 
 

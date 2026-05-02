@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from db import collections
+from db import collections_db as collections
 
 
 async def retrieve_policy(query: str, intent: str):
