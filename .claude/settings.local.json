@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\faiza\\\\Downloads\\\\ClusterCat\\\\ClusterCat\\\\apps\\\\web\\\\src\" -Recurse -Force | Where-Object {$_.PSIsContainer} | ForEach-Object { $_.FullName.Replace\\(\"c:\\\\Users\\\\faiza\\\\Downloads\\\\ClusterCat\\\\ClusterCat\\\\apps\\\\web\\\\src\\\\\", \"\"\\) })",
+      "Bash(netstat -ano)",
+      "PowerShell(Get-Process -Id 41928 -ErrorAction SilentlyContinue)"
+    ]
+  }
+}
