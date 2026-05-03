@@ -16,3 +16,7 @@ INFO:     127.0.0.1:62284 - "POST /api/chat HTTP/1.1" 200 OK
 INFO:     127.0.0.1:60542 - "POST /api/chat HTTP/1.1" 200 OK
 INFO:     127.0.0.1:51246 - "OPTIONS /api/voice/session HTTP/1.1" 200 OK
 INFO:     127.0.0.1:51246 - "POST /api/voice/session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61019 - "POST /api/voice/session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62208 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53687 - "POST /api/voice/session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50909 - "POST /api/voice/session HTTP/1.1" 200 OK
