@@ -7,11 +7,7 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 1781ms
+ ✓ Ready in 1757ms
  ○ Compiling / ...
- ✓ Compiled / in 1630ms (525 modules)
- GET / 200 in 2203ms
- GET / 200 in 78ms
- ✓ Compiled in 2.7s (539 modules)
- GET / 200 in 268ms
- GET / 200 in 176ms
+ ✓ Compiled / in 3.5s (539 modules)
+ GET / 200 in 4050ms

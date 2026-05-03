@@ -238,7 +238,7 @@ function normalizeAppointment(appointment: Record<string, unknown>): Appointment
 }
 
 export function calendlyUrl(): string {
-  return process.env.NEXT_PUBLIC_CALENDLY_URL ?? "https://calendly.com/islington-animal-hospital/cluster-cat-demo";
+  return process.env.NEXT_PUBLIC_CALENDLY_URL ?? "https://calendly.com/alvifaizan695/new-meeting";
 }
 
 function demoOwner(ownerId: string | null): Owner | null {
