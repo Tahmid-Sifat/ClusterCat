@@ -118,7 +118,7 @@ export function ChatInterface({ messages, isLoading, error, onSendMessage }: Cha
   }
 
   return (
-    <section className="grid min-h-[420px] grid-rows-[auto_1fr_auto] overflow-hidden rounded-xl border border-[#d8cec2] bg-[#fffdf9] shadow-[0_14px_34px_rgba(63,52,42,0.09)] transition hover:border-[#9a7a61] hover:shadow-[0_18px_42px_rgba(63,52,42,0.12)]">
+    <section className="grid min-h-[300px] grid-rows-[auto_1fr_auto] overflow-hidden rounded-xl border border-[#d8cec2] bg-[#fffdf9] shadow-[0_14px_34px_rgba(63,52,42,0.09)] transition hover:border-[#9a7a61] hover:shadow-[0_18px_42px_rgba(63,52,42,0.12)] sm:min-h-[420px]">
       <div className="flex items-center justify-between border-b border-[#d8cec2] bg-[#fffdf9] px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-lg border border-[#d8cec2] bg-[#f4ede6] text-[#7c5236]">
@@ -148,13 +148,13 @@ export function ChatInterface({ messages, isLoading, error, onSendMessage }: Cha
         {error ? <p className="mb-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
         <div className="flex gap-2">
           <button
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#cbb7a4] bg-white px-4 text-sm font-semibold text-[#332a22] shadow-sm transition hover:border-[#7c5236] hover:bg-[#f3efe7] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg border border-[#cbb7a4] bg-white px-3 text-sm font-semibold text-[#332a22] shadow-sm transition hover:border-[#7c5236] hover:bg-[#f3efe7] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
             disabled={!speechSupported}
             onClick={toggleListening}
             type="button"
           >
             {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-            {isListening ? "Listening..." : speechSupported ? "Talk" : "Voice not supported"}
+            <span className="hidden sm:inline">{isListening ? "Listening..." : speechSupported ? "Talk" : "Voice not supported"}</span>
           </button>
           <input
             className="min-w-0 flex-1 rounded-lg border border-[#cbb7a4] bg-white px-3 py-2 text-sm text-[#332a22] shadow-sm outline-none transition hover:border-[#9a7a61] focus:border-[#7c5236] focus:ring-2 focus:ring-[#d8c5b6]"

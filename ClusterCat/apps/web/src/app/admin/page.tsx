@@ -13,9 +13,9 @@ export default function AdminPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 text-slate-900">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="mb-4 text-lg font-semibold">Knowledge Base — Islington Animal Hospital</h1>
+    <main className="min-h-screen bg-slate-50 p-2 text-slate-900 sm:p-4">
+      <div className="mx-auto w-full max-w-4xl">
+        <h1 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">Knowledge Base — Islington Animal Hospital</h1>
         <KnowledgeSearch />
         <section className="mt-4 grid gap-3 sm:grid-cols-2">
           {chunks.map((chunk, index) => (

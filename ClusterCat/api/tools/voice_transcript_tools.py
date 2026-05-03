@@ -1,14 +1,16 @@
-import os
 from datetime import datetime
+from pathlib import Path
 from uuid import uuid4
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+from db.collections_db import _db
 
 
-def _get_conversations():
-    uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-    client = AsyncIOMotorClient(uri)
-    return client[os.getenv("MONGODB_DB_NAME", "clustercat")]["conversations"]
+def _conversations():
+    return _db()["conversations"]
 
 
 async def create_voice_conversation(conversation_id: str, room_name: str):
@@ -22,7 +24,7 @@ async def create_voice_conversation(conversation_id: str, room_name: str):
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
     }
-    await _get_conversations().update_one(
+    await _conversations().update_one(
         {"_id": conversation_id},
         {"$setOnInsert": doc},
         upsert=True,
@@ -37,7 +39,7 @@ async def save_transcript_turn(conversation_id: str, role: str, content: str):
         "content": content,
         "created_at": datetime.utcnow(),
     }
-    await _get_conversations().update_one(
+    await _conversations().update_one(
         {"_id": conversation_id},
         {
             "$push": {"transcript": turn},
@@ -49,7 +51,7 @@ async def save_transcript_turn(conversation_id: str, role: str, content: str):
 
 
 async def close_voice_conversation(conversation_id: str):
-    col = _get_conversations()
+    col = _conversations()
     conversation = await col.find_one({"_id": conversation_id})
     transcript = conversation.get("transcript", []) if conversation else []
     summary = _summarize(transcript)

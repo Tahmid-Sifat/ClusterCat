@@ -35,10 +35,18 @@ from routes import (
 # Lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     print("Starting ClusterCat API...")
+    try:
+        await create_indexes()
+        print("[INFO] Database indexes created.")
+    except Exception as e:
+        print(f"[WARN] Index creation failed: {e}")
+    try:
+        await seed()
+        print("[INFO] Database seeded.")
+    except Exception as e:
+        print(f"[WARN] Seeding failed: {e}")
     yield
-    # Shutdown
     print("Shutting down ClusterCat API...")
 
 

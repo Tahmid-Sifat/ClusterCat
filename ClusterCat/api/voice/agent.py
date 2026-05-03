@@ -59,8 +59,9 @@ async def entrypoint(ctx: JobContext):
     conversation_id = str(uuid.uuid4())
     try:
         await create_voice_conversation(conversation_id, ctx.room.name)
+        logger.info("Created voice conversation %s for room %s in MongoDB", conversation_id, ctx.room.name)
     except Exception as exc:
-        logger.warning("Failed to create voice conversation in DB (non-fatal): %s", exc)
+        logger.error("FAILED to create voice conversation in MongoDB: %s", exc)
 
     orchestrator = OrchestratorBridge(
         conversation_id=conversation_id,
@@ -93,16 +94,38 @@ async def entrypoint(ctx: JobContext):
     logger.info("Conversation %s started", conversation_id)
 
 
+async def _save_turn(conversation_id: str, role: str, content: str):
+    try:
+        await save_transcript_turn(conversation_id, role, content)
+        logger.info("[%s] Saved %s turn to MongoDB (%d chars)", conversation_id, role, len(content))
+    except Exception as exc:
+        logger.error("[%s] FAILED to save %s turn to MongoDB: %s", conversation_id, role, exc)
+
+
+async def _close_conversation(conversation_id: str):
+    try:
+        await close_voice_conversation(conversation_id)
+        logger.info("[%s] Conversation closed and saved to MongoDB", conversation_id)
+    except Exception as exc:
+        logger.error("[%s] FAILED to close conversation in MongoDB: %s", conversation_id, exc)
+
+
 def setup_event_handlers(assistant: VoiceAssistant, ctx: JobContext, conversation_id: str):
     @assistant.on("user_speech_committed")
     def on_user_spoke(msg: llm.ChatMessage):
-        logger.info("[%s] Caller: %s", conversation_id, msg.content)
-        asyncio.create_task(save_transcript_turn(conversation_id, "user", str(msg.content)))
+        text = str(msg.content).strip()
+        if not text:
+            return
+        logger.info("[%s] Caller: %s", conversation_id, text)
+        asyncio.ensure_future(_save_turn(conversation_id, "user", text))
 
     @assistant.on("agent_speech_committed")
     def on_agent_spoke(msg: llm.ChatMessage):
-        logger.info("[%s] Agent: %s", conversation_id, msg.content)
-        asyncio.create_task(save_transcript_turn(conversation_id, "agent", str(msg.content)))
+        text = str(msg.content).strip()
+        if not text:
+            return
+        logger.info("[%s] Agent: %s", conversation_id, text)
+        asyncio.ensure_future(_save_turn(conversation_id, "agent", text))
 
     @assistant.on("user_started_speaking")
     def on_user_started():
@@ -123,7 +146,7 @@ def setup_event_handlers(assistant: VoiceAssistant, ctx: JobContext, conversatio
     @ctx.room.on("participant_disconnected")
     def on_participant_left(participant):
         logger.info("[%s] Participant disconnected: %s", conversation_id, getattr(participant, "identity", "unknown"))
-        asyncio.create_task(close_voice_conversation(conversation_id))
+        asyncio.ensure_future(_close_conversation(conversation_id))
 
 
 def _validate_environment():

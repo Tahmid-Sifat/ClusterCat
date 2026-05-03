@@ -11,6 +11,8 @@ from livekit.api.access_token import AccessToken, VideoGrants
 from livekit.protocol.agent_dispatch import CreateAgentDispatchRequest
 from livekit.protocol.room import CreateRoomRequest
 
+from db.collections_db import _db
+
 
 class VoiceSessionResponse(BaseModel):
     url: str
@@ -74,3 +76,22 @@ async def voice_session():
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"LiveKit session creation failed: {exc}")
+
+
+@router.get("/room/{room_name}/transcript")
+async def get_room_transcript(room_name: str):
+    col = _db()["conversations"]
+    doc = await col.find_one({"room_name": room_name})
+    if not doc:
+        return {"conversation_id": None, "transcript": [], "status": "not_found"}
+    transcript = []
+    for turn in doc.get("transcript", []):
+        t = dict(turn)
+        if hasattr(t.get("created_at"), "isoformat"):
+            t["created_at"] = t["created_at"].isoformat()
+        transcript.append(t)
+    return {
+        "conversation_id": str(doc["_id"]),
+        "transcript": transcript,
+        "status": doc.get("status", "active"),
+    }

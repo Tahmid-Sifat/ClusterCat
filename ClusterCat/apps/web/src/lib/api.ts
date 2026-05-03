@@ -39,6 +39,27 @@ export async function createVoiceSession(): Promise<VoiceSessionResponse> {
   return await response.json();
 }
 
+export interface VoiceTranscriptTurn {
+  _id: string;
+  role: "user" | "agent";
+  content: string;
+  created_at: string;
+}
+
+export interface VoiceTranscriptResponse {
+  conversation_id: string | null;
+  transcript: VoiceTranscriptTurn[];
+  status: string;
+}
+
+export async function getVoiceTranscript(roomName: string): Promise<VoiceTranscriptResponse> {
+  const response = await fetch(`${API_BASE}/api/voice/room/${encodeURIComponent(roomName)}/transcript`, {
+    cache: "no-store"
+  });
+  if (!response.ok) return { conversation_id: null, transcript: [], status: "error" };
+  return await response.json();
+}
+
 export async function getDashboard(): Promise<DashboardData> {
   const response = await fetch(`${API_BASE}/api/dashboard`, { cache: "no-store" });
   if (!response.ok) throw new Error("Dashboard request failed");

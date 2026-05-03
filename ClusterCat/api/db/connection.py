@@ -6,9 +6,12 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-load_dotenv()
+# Always load from api/.env regardless of CWD (worker subprocesses may have different CWD)
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
 class InsertOneResult:
@@ -172,14 +175,15 @@ db = None
 
 try:
     if MONGODB_URI and AsyncIOMotorClient:
-        print(f"[INFO] MONGODB_URI is set. Using in-memory database for demo mode.")
-        print(f"   To use MongoDB, ensure it's running at {MONGODB_URI}")
-        db = MemoryDatabase()
+        print(f"[INFO] Connecting to MongoDB at {MONGODB_URI}")
+        client = AsyncIOMotorClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+        db = client[MONGODB_DB_NAME]
+        print(f"[INFO] MongoDB client initialised (database: {MONGODB_DB_NAME})")
     else:
-        print("[INFO] Using MemoryDatabase for demo mode")
+        print("[INFO] No MONGODB_URI set — using MemoryDatabase for demo mode")
         db = MemoryDatabase()
 except Exception as e:
-    print(f"[WARN] Error initializing database: {e}. Using MemoryDatabase")
+    print(f"[WARN] Error initialising MongoDB: {e}. Falling back to MemoryDatabase")
     db = MemoryDatabase()
     client = None
 
