@@ -1,0 +1,14 @@
+
+> clustercat-web@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.23
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1781ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1630ms (525 modules)
+ GET / 200 in 2203ms
+ GET / 200 in 78ms

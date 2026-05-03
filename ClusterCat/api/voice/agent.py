@@ -57,7 +57,10 @@ async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
     conversation_id = str(uuid.uuid4())
-    await create_voice_conversation(conversation_id, ctx.room.name)
+    try:
+        await create_voice_conversation(conversation_id, ctx.room.name)
+    except Exception as exc:
+        logger.warning("Failed to create voice conversation in DB (non-fatal): %s", exc)
 
     orchestrator = OrchestratorBridge(
         conversation_id=conversation_id,

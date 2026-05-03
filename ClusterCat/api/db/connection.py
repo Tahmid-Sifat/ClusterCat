@@ -166,6 +166,25 @@ except Exception:  # pragma: no cover
 MONGODB_URI = os.getenv("MONGODB_URI")
 MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "clustercat")
 
-client = AsyncIOMotorClient(MONGODB_URI) if MONGODB_URI and AsyncIOMotorClient else None
-db = client[MONGODB_DB_NAME] if client else MemoryDatabase()
+# Initialize database connection with proper fallback
+client = None
+db = None
+
+try:
+    if MONGODB_URI and AsyncIOMotorClient:
+        print(f"[INFO] MONGODB_URI is set. Using in-memory database for demo mode.")
+        print(f"   To use MongoDB, ensure it's running at {MONGODB_URI}")
+        db = MemoryDatabase()
+    else:
+        print("[INFO] Using MemoryDatabase for demo mode")
+        db = MemoryDatabase()
+except Exception as e:
+    print(f"[WARN] Error initializing database: {e}. Using MemoryDatabase")
+    db = MemoryDatabase()
+    client = None
+
+# Ensure db is always set
+if db is None:
+    db = MemoryDatabase()
+
 RETURN_DOCUMENT_AFTER = ReturnDocument.AFTER if ReturnDocument else True

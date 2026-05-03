@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 WorkflowStep = Literal[
@@ -34,6 +34,8 @@ class ChatRequest(BaseModel):
     message: str
     phone: str = Field(default="+44 7700 900001")
     channel: Literal["chat", "voice", "sms"] = "chat"
+    conversation_id: str | None = None
+    session_state: dict | None = None
 
 
 class AgentAction(BaseModel):
@@ -44,13 +46,35 @@ class AgentAction(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    reply: str
+    response: str = Field(default="")
+    reply: str = ""  # For backward compatibility
+    workflow_state: dict[str, Any] = Field(default_factory=dict)
     workflow_id: str | None = None
-    current_step: str
+    current_step: str = "start"
     urgency_level: Literal["routine", "urgent", "emergency"] | None = None
-    active_agent: str
+    triage_level: Literal["routine", "urgent", "emergency"] | None = None
+    active_agent: str = "Reception Agent"
     flags: dict[str, Any] = Field(default_factory=dict)
     actions: list[AgentAction] = Field(default_factory=list)
+    retrieved_policy: dict[str, Any] | None = None
+    next_action: str = ""
+    handoff_note: str | None = None
+    owner: dict[str, Any] | None = None
+    pet: dict[str, Any] | None = None
+    appointment: dict[str, Any] | None = None
+
+    @model_validator(mode="before")
+    def populate_response_from_reply(cls, data):
+        """Populate response field from reply if not already set"""
+        if isinstance(data, dict):
+            if "response" not in data or not data["response"]:
+                if "reply" in data and data["reply"]:
+                    data["response"] = data["reply"]
+            # Ensure reply is set for backward compatibility
+            if "reply" not in data or not data["reply"]:
+                if "response" in data and data["response"]:
+                    data["reply"] = data["response"]
+        return data
 
 
 class WorkflowResumeRequest(BaseModel):

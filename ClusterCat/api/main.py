@@ -1,20 +1,51 @@
 import sys
 from pathlib import Path
+from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Load environment variables
+load_dotenv()
+
+# Fix Python path for local imports
 API_DIR = Path(__file__).resolve().parent
 if str(API_DIR) not in sys.path:
     sys.path.insert(0, str(API_DIR))
 
+# Local imports
 from db import collections_db as collections
 from db.indexes import create_indexes
 from db.seed import seed
-from routes import appointments, chat, dashboard, flags, knowledge, pets, sms, triage, voice, workflows
+from routes import (
+    appointments,
+    chat,
+    dashboard,
+    flags,
+    knowledge,
+    pets,
+    sms,
+    triage,
+    voice,
+    workflows
+)
 
-app = FastAPI(title="ClusterCat API", version="0.1.0")
 
+# Lifespan context manager
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("Starting ClusterCat API...")
+    yield
+    # Shutdown
+    print("Shutting down ClusterCat API...")
+
+
+# FastAPI app
+app = FastAPI(title="ClusterCat API", version="0.1.0", lifespan=lifespan)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,6 +56,7 @@ app.add_middleware(
 
 API_PREFIX = "/api"
 
+# Routers
 app.include_router(chat.router, prefix=API_PREFIX)
 app.include_router(dashboard.router, prefix=API_PREFIX)
 app.include_router(workflows.router, prefix=API_PREFIX)
@@ -37,13 +69,7 @@ app.include_router(sms.router, prefix=API_PREFIX)
 app.include_router(voice.router, prefix=API_PREFIX)
 
 
-@app.on_event("startup")
-async def startup():
-    await create_indexes()
-    if not await collections.owners.find_one({"phone": "+44 7700 900001"}):
-        await seed()
-
-
+# Health checks
 @app.get("/health")
 async def health():
     return {"ok": True, "service": "clustercat-api"}
@@ -52,3 +78,8 @@ async def health():
 @app.get(f"{API_PREFIX}/health")
 async def api_health():
     return await health()
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,0 +1,18 @@
+[INFO] MONGODB_URI is set. Using in-memory database for demo mode.
+   To use MongoDB, ensure it's running at mongodb://localhost:27017
+Starting ClusterCat API...
+INFO:     127.0.0.1:50417 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50417 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50417 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50417 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50417 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50421 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63544 - "OPTIONS /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63544 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63544 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55760 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54861 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62284 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60542 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51246 - "OPTIONS /api/voice/session HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51246 - "POST /api/voice/session HTTP/1.1" 200 OK
