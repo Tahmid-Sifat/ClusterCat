@@ -46,7 +46,7 @@ async def voice_session():
         async with LiveKitAPI(api_host, api_key, api_secret) as lkapi:
             await lkapi.room.create_room(CreateRoomRequest(name=room_name, empty_timeout=60 * 60, max_participants=20))
             await lkapi.agent_dispatch.create_dispatch(
-                CreateAgentDispatchRequest(room=room_name, agent_name="")
+                CreateAgentDispatchRequest(room=room_name, agent_name="clustercat-voice")
             )
 
         expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
